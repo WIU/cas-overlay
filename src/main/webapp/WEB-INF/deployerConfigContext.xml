@@ -32,10 +32,9 @@
        http://www.ldaptive.org/schema/spring-ext
        http://www.ldaptive.org/schema/spring-ext.xsd">
 
-
-    <util:map id="authenticationHandlersResolvers">
+<util:map id="authenticationHandlersResolvers">
         <entry key-ref="proxyAuthenticationHandler" value-ref="proxyPrincipalResolver" />
-        <entry key-ref="ldapAuthenticationHandler" value="#{null}" />
+        <entry key-ref="primaryAuthenticationHandler" value-ref="primaryPrincipalResolver" />
     </util:map>
 
     <util:list id="authenticationMetadataPopulators">
@@ -43,59 +42,25 @@
         <ref bean="rememberMeAuthenticationMetaDataPopulator" />
     </util:list>
 
+    <bean id="attributeRepository" class="org.jasig.services.persondir.support.NamedStubPersonAttributeDao"
+          p:backingMap-ref="attrRepoBackingMap" />
 
-    <alias name="ldapAuthenticationHandler" alias="personDirectoryPrincipalResolver" />
-    <alias name="ldapPasswordPolicyConfiguration" alias="passwordPolicyConfiguration" />
-    
+    <alias name="acceptUsersAuthenticationHandler" alias="primaryAuthenticationHandler" />
+    <alias name="personDirectoryPrincipalResolver" alias="primaryPrincipalResolver" />
 
-    <bean id="ldapAuthenticationHandler"
-          class="org.jasig.cas.authentication.LdapAuthenticationHandler"
-          p:principalIdAttribute="wiuAlias"
-          p:passwordPolicyConfiguration-ref="passwordPolicyConfiguration"
-          c:authenticator-ref="authenticator">
-        <property name="principalAttributeMap">
-            <map>
-                <!--
-                   | This map provides a simple attribute resolution mechanism.
-                   | Keys are LDAP attribute names, values are CAS attribute names.
-                   | Use this facility instead of a PrincipalResolver if LDAP is
-                   | the only attribute source.
-                   -->
-                <entry key="uid" value="ecomuid" />
-                <entry key="wiuAlias" value="wiualias" />
-                <entry key="wiuid" value="wiuid" />
-                <entry key="givenName" value="givenname" />
-                <entry key="sn" value="sn" />
-                <entry key="cn" value="cn" />
-                <entry key="mail" value="mail" />
-                <entry key="wiuregisteredstar" value="wiuregisteredstar" />
-                <entry key="objectClass" value="objectclass" />
-            </map>
-        </property>
-    </bean>
-
-    <ldaptive:bind-search-authenticator id="authenticator"
-        ldapUrl="${ldap.url}"
-        baseDn="${ldap.baseDn}"
-        userFilter="${ldap.authn.searchFilter}"
-        bindDn="${ldap.managerDn}"
-        bindCredential="${ldap.managerPassword}"
-        connectTimeout="${ldap.connectTimeout}"
-        useStartTLS="${ldap.useStartTLS}"
-        blockWaitTime="${ldap.pool.blockWaitTime}"
-        maxPoolSize="${ldap.pool.maxSize}"
-        allowMultipleDns="${ldap.allowMultipleDns:false}"
-        usePasswordPolicy="${ldap.usePpolicy:true}"
-        minPoolSize="${ldap.pool.minSize}"
-        validateOnCheckOut="${ldap.pool.validateOnCheckout}"
-        validatePeriodically="${ldap.pool.validatePeriodically}"
-        validatePeriod="${ldap.pool.validatePeriod}"
-        idleTime="${ldap.pool.idleTime}"
-        prunePeriod="${ldap.pool.prunePeriod}"
-        failFastInitialize="true"
-        subtreeSearch="${ldap.subtree.search:true}"
-        useSSL="${ldap.use.ssl:false}"
-    />
+    <util:map id="attrRepoBackingMap">
+        <entry key="uid" value="uid" />
+        <entry key="eduPersonAffiliation" value="eduPersonAffiliation" />
+        <entry key="groupMembership" value="groupMembership" />
+        <entry>
+            <key><value>memberOf</value></key>
+            <list>
+                <value>faculty</value>
+                <value>staff</value>
+                <value>org</value>
+            </list>
+        </entry>
+    </util:map>
 
     <alias name="serviceThemeResolver" alias="themeResolver" />
 
